@@ -132,6 +132,7 @@ details.more .sumsub{display:block;color:var(--sub);font-size:.8rem;font-weight:
 .line span:first-child{color:var(--sub)}
 .line.sum span{color:var(--ink);font-weight:800}
 .chip{display:inline-block;background:rgba(79,107,255,.14);color:var(--blue);border-radius:99px;padding:0 9px;font-size:.76rem;font-weight:700;margin-left:6px}
+p.note{margin:-4px 0 10px;padding:0;font-size:.84rem;font-weight:600;color:var(--sub);line-height:1.5}
 ul.tips{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.96rem;font-weight:600}
 ul.tips li{padding-left:22px;position:relative}
 ul.tips li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700}
@@ -305,7 +306,7 @@ var GROUPS=[
   {k:'spouseOld',t:'chk',l:'配偶已滿 70 歲',showIf:'married',
    help:function(Y){return ['<b>這是什麼</b>配偶年滿 70 歲,免稅額從 '+wn(Y.ex)+' 變成 '+wn(Y.exOld)+'。']}},
   {k:'depU',t:'cnt',l:'扶養的家人',s:'未滿 70 歲',
-   help:function(Y){return ['<b>這是什麼</b>你實際在養的家人:沒有收入的小孩、沒工作的爸媽或祖父母(未滿 70 歲)。','<b>怎麼填</b>一個一個算人數。不用算你自己和配偶,系統會自動加。','<b>好處</b>每多一位,可以少算 '+wn(Y.ex)+' 的所得(免稅額)。']}},
+   help:function(Y){return ['<b>這是什麼</b>你實際在養的家人:沒有收入的小孩、沒工作的爸媽或祖父母(未滿 70 歲)。','<b>怎麼填</b>一個一個算人數。不用算你自己和配偶,系統會自動加。','<b>有 6 歲以下小孩?</b>他們也要算在這裡(免稅額),下面「6 歲以下的小孩」是另外的加碼,兩邊都填不是重複。','<b>好處</b>每多一位,可以少算 '+wn(Y.ex)+' 的所得(免稅額)。']}},
   {k:'dep70',t:'cnt',l:'扶養的長輩',s:'滿 70 歲以上',
    help:function(Y){return ['<b>這是什麼</b>你扶養的爸媽、祖父母,而且已經年滿 70 歲。','<b>好處</b>每位可以少算 '+wn(Y.exOld)+' 的所得,比一般家人多。']}}
  ]},
@@ -329,7 +330,7 @@ var GROUPS=[
   {k:'other',l:'其他所得',s:'稿費、獎金等,已扣成本',ph:'0',help:function(Y){return ['<b>這是什麼</b>不屬於上面任何一種的收入,例如比賽獎金、零星稿費。','<b>怎麼填</b>填「扣掉成本之後」的金額。']}}
  ]},
  {title:'第 3 步・可以多扣的項目',footer:'沒有的就跳過。系統會自動幫你檢查有沒有資格。',items:[
-  {k:'kids',t:'cnt',l:'6 歲以下的小孩',help:function(Y){return ['<b>這是什麼</b>還沒滿 6 歲、由你扶養的小孩。','<b>好處</b>第 1 位多扣 '+wn(150000)+',第 2 位起每位多扣 '+wn(225000)+'。']}},
+  {k:'kids',t:'cnt',l:'6 歲以下的小孩',note:'這些小孩也要算進上面的「扶養的家人」,兩邊都會扣,不是重複算。',help:function(Y){return ['<b>這是什麼</b>還沒滿 6 歲、由你扶養的小孩。','<b>好處</b>第 1 位多扣 '+wn(150000)+',第 2 位起每位多扣 '+wn(225000)+'。','<b>要注意</b>這是「額外加碼」。小孩同時也是扶養親屬,所以請在上面的「扶養的家人」也算進去(免稅額 '+wn(Y.ex)+'),兩個都會扣,不是重複。']}},
   {k:'students',t:'cnt',l:'念大專院校的小孩',help:function(Y){return ['<b>這是什麼</b>目前在大專院校(大學、技術學院、五專後兩年等)念書的小孩。','<b>好處</b>每位最多扣 '+wn(25000)+' 學費,實際以繳費單為準。']}},
   {k:'dis',t:'cnt',l:'有身心障礙證明的人',help:function(Y){return ['<b>這是什麼</b>領有身心障礙證明(手冊)的家人,包括你自己。','<b>好處</b>每位多扣 '+wn(Y.dis)+'。']}},
   {k:'ltc',t:'cnt',l:'需要長期照顧的人',help:function(Y){return ['<b>這是什麼</b>符合長照需求、有證明的家人。','<b>好處</b>每位多扣 '+wn(180000)+'。','<b>注意</b>如果你扣完之後稅率會到 20% 以上(收入比較高),就不能扣,系統會自動判斷。']}},
@@ -357,7 +358,7 @@ function rowHtml(it){
   else if(it.t==='cnt')c='<div class="stepper"><button type="button" data-dec="'+it.k+'" aria-label="減少">−</button><output id="o_'+it.k+'">0</output><button type="button" data-inc="'+it.k+'" aria-label="增加">＋</button></div>';
   else if(it.t==='chk')c='<input type="checkbox" class="sw" id="i_'+it.k+'" data-k="'+it.k+'" aria-label="'+it.l+'">';
   else c='<div class="money"><input type="number" inputmode="numeric" min="0" step="1" id="i_'+it.k+'" data-k="'+it.k+'" placeholder="0" aria-label="'+it.l+'"><i>元</i></div>';
-  return '<div class="row" data-row="'+it.k+'"><div class="row-main">'+lab+'<div class="ctl">'+c+'</div></div><div class="help" id="h_'+it.k+'" aria-hidden="true"></div></div>';
+  return '<div class="row" data-row="'+it.k+'"><div class="row-main">'+lab+'<div class="ctl">'+c+'</div></div>'+(it.note?'<p class="note">'+it.note+'</p>':'')+'<div class="help" id="h_'+it.k+'" aria-hidden="true"></div></div>';
 }
 function build(){
   var h='';
@@ -431,6 +432,7 @@ function renderResult(){
   var tips=[],std=all['std-'+r.div],it=all['item-'+r.div],d=Math.abs(std.total-it.total);
   tips.push(r.mode==='item'?'你的花費比標準扣除額多,系統已幫你用「列舉」,比標準少繳 '+f(d)+' 元。':'標準扣除額比你的花費多,已幫你用「標準」'+(d>0?',用列舉會多繳 '+f(d)+' 元。':'。'));
   if(state.dividend>0){var oth=all[r.mode+'-'+(r.div==='combined'?'separate':'combined')];tips.push('股利採「'+(r.div==='combined'?'併入所得':'單獨 28%')+'」,比另一種少繳 '+f(Math.abs(oth.total-r.total))+' 元。')}
+  if(N(state.kids)>N(state.depU)+N(state.dep70))tips.push('你填了 '+N(state.kids)+' 位 6 歲以下小孩,但扶養人數只有 '+(N(state.depU)+N(state.dep70))+' 位。小孩也要算進「扶養的家人」才有免稅額,請回去確認。');
   if(r.blDiff>0)tips.push('你的家人多,基本生活費差額幫你多扣了 '+f(r.blDiff)+' 元所得。');
   if(PARAMS[state.year].blProvisional&&r.blDiff>0)tips.push('提醒:115 年度每人基本生活費財政部還沒公告,先用 114 年度的 21.3 萬計算,公告後可能微調。');
   h+='<div class="card"><h3>重點整理</h3><ul class="tips" style="margin-top:10px">'+tips.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>';
