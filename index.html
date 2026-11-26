@@ -1,0 +1,315 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>綜所稅試算</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 單欄、留白多。頂端固定結果列,下方依序:三步輸入 → 圖解 → 方案比較。淺色和紙白,靛藍為唯一重點色。 */
+:root{
+  --bg:#f7f6f2; --surface:#fffefc; --fg:#2a2a28; --muted:#8c8b85; --line:#e8e6df;
+  --accent:#3b5a7a; --accent-fg:#fffefc; --accent-soft:#e9eef3; --accent-mid:#b9c9d9;
+  --good:#5f8450; --warn:#b4533a; color-scheme:light;
+  --font:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","PingFang TC","Noto Sans TC","Yu Gothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.7;letter-spacing:.03em;
+  -webkit-font-smoothing:antialiased;padding-block:0 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header{padding-top:44px}
+h1{font-size:1.15rem;font-weight:500;margin:0;letter-spacing:.2em}
+.sub{color:var(--muted);margin:8px 0 0;font-size:.8rem;line-height:1.8}
+h2{font-size:.74rem;font-weight:500;color:var(--muted);letter-spacing:.2em;margin:0 0 14px}
+
+/* 固定結果列 */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:14px 0;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bar .tag{font-size:.74rem;letter-spacing:.18em;color:var(--warn)}
+.bar .tag.refund{color:var(--good)}
+.bar .num{font-size:2.1rem;font-weight:300;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.bar .num small{font-size:.8rem;color:var(--muted);margin-left:4px}
+
+.note{border-left:2px solid var(--accent-mid);padding:0 0 0 12px;color:var(--muted);font-size:.78rem;line-height:1.8}
+.note[hidden],.f[hidden],.panel[hidden],.opt[hidden]{display:none}
+.warnnote{border-left-color:var(--warn)}
+
+/* 步驟 */
+.steps{display:flex;border-bottom:1px solid var(--line)}
+.steps button{flex:1;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 0;font:inherit;font-size:.86rem;letter-spacing:.2em;color:var(--muted);cursor:pointer}
+.steps button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.steps button span{font-size:.7rem;margin-right:6px;color:var(--accent)}
+.panel{padding-top:8px}
+.g{font-size:.74rem;color:var(--muted);letter-spacing:.2em;margin:26px 0 2px}
+.g small{letter-spacing:.04em;margin-left:8px}
+
+/* 欄位 */
+.f{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.f .l{min-width:0}
+.f .l b{font-weight:400;display:block}
+.f .l span{display:block;color:var(--muted);font-size:.72rem;line-height:1.6;margin-top:2px}
+.money{display:flex;align-items:baseline;gap:6px;justify-content:flex-end}
+.money input{width:9.5em;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-size:16px;text-align:right;padding:4px 2px;border-radius:0;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.money input::-webkit-inner-spin-button{display:none}
+.money input::placeholder{color:var(--line)}
+.money input:focus{outline:0;border-bottom-color:var(--accent)}
+.money i{font-style:normal;color:var(--muted);font-size:.78rem}
+.hint{grid-column:1/-1;text-align:right;color:var(--accent);font-size:.7rem;min-height:1.1em;margin-top:2px}
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:1rem;line-height:1;padding:0;cursor:pointer}
+.stepper button:hover{border-color:var(--accent);color:var(--accent)}
+.stepper output{min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums;font-size:1.05rem}
+.sw{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;margin:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw:checked{background:var(--accent)}.sw:checked::after{transform:translateX(18px)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+.chips button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:5px 14px;font:inherit;font-size:.78rem;letter-spacing:.1em;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.pager{display:flex;justify-content:space-between;margin-top:26px}
+.pager button,.copy{font:inherit;font-size:.8rem;letter-spacing:.14em;background:none;border:1px solid var(--line);border-radius:2px;padding:8px 20px;color:var(--fg);cursor:pointer}
+.pager button.next{border-color:var(--accent);color:var(--accent)}
+.pager button:hover,.copy:hover{background:var(--accent-soft)}
+.pager button[hidden]{display:none}
+input:focus-visible,button:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+/* 圖解 */
+.comp{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.comp i{display:block;height:100%}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 18px;margin:14px 0 0;padding:0;list-style:none;font-size:.78rem;color:var(--muted)}
+.legend li{display:flex;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
+.legend li span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:var(--c)}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.ladder div{border-top:3px solid var(--line);padding-top:8px;text-align:center;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+.ladder div b{display:block;font-weight:400;font-size:1rem}
+.ladder div.on{border-top-color:var(--accent);color:var(--accent)}
+.cap{color:var(--muted);font-size:.78rem;margin:12px 0 0}
+.kv{display:grid;grid-template-columns:1fr auto;margin:0;font-variant-numeric:tabular-nums;font-size:.9rem}
+.kv dt,.kv dd{padding:9px 0;border-bottom:1px solid var(--line);margin:0}
+.kv dt{color:var(--muted)}.kv dd{text-align:right}
+.kv .tot{color:var(--fg);font-weight:500}
+ul.tips{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.84rem}
+ul.tips li{padding-left:16px;position:relative}
+ul.tips li::before{content:"";position:absolute;left:2px;top:.75em;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.84rem}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:400;letter-spacing:.1em;font-size:.74rem}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+tr.best td{color:var(--accent);font-weight:500}
+.foot{color:var(--muted);font-size:.72rem;line-height:1.9}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:520px){
+  header{padding-top:28px}
+  .wrap{gap:30px}
+  .bar .num{font-size:1.9rem}
+  .steps button{padding:14px 0}
+  .money input{width:8em;padding:8px 2px}
+  .stepper button{width:40px;height:40px;font-size:1.2rem}
+  .sw{width:50px;height:30px;border-radius:15px}
+  .sw::after{width:24px;height:24px}
+  .sw:checked::after{transform:translateX(20px)}
+  .chips button{padding:9px 16px;font-size:.84rem}
+  .pager button,.copy{padding:12px 24px;font-size:.88rem}
+  #clear{padding:6px 14px!important}
+  .ladder{gap:2px}
+  .ladder div{font-size:.62rem;letter-spacing:0}
+  .ladder div b{font-size:.92rem}
+  .legend{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>綜所稅試算</h1>
+    <p class="sub"><span id="yr"></span> 年度所得 · <span id="fy"></span> 年 5 月申報<br>資料只在你的瀏覽器計算,不會上傳</p>
+  </header>
+
+  <div class="bar" id="bar" aria-live="polite"></div>
+
+  <div class="note" id="sample">現在填的是範例數字,請改成你自己的資料。<button type="button" class="copy" id="clear" style="padding:2px 12px;margin-left:8px">清空</button></div>
+  <div class="note warnnote" id="verify" hidden></div>
+
+  <main>
+    <div class="steps" role="tablist" id="steps"></div>
+    <form id="form" onsubmit="return false" autocomplete="off"></form>
+    <div class="pager"><button type="button" id="prev">上一步</button><button type="button" class="next" id="next">下一步</button></div>
+  </main>
+
+  <section><h2>這筆稅怎麼來的</h2><div id="comp"></div></section>
+  <section><h2>你在哪一級</h2><div id="ladder"></div></section>
+  <section><h2>計算明細</h2><dl class="kv" id="kv"></dl></section>
+  <section><h2>可以怎麼省</h2><ul class="tips" id="tips"></ul><p style="margin:18px 0 0"><button type="button" class="copy" id="copy">複製摘要</button></p></section>
+  <section><h2>四種方案比較</h2><div class="tw"><table id="cmp"></table></div>
+    <p class="foot" style="margin:12px 0 0">標準 / 列舉是扣除額方式;合併 / 分開是股利計稅方式。沒有股利時,合併與分開相同。</p></section>
+
+  <p class="foot">這是依公開稅制做的簡化試算,未含基本稅額(AMT)、財產交易損失、境外所得、夫妻分開申報,實際以國稅局核定為準。申報前請用財政部電子結算申報系統核對。</p>
+</div>
+
+<script src="params.js"></script>
+<script src="calc.js"></script>
+<script>/*APP*/
+var STEPS=['家庭','所得','扣除'];
+var FIELDS=[
+ [ {k:'married',t:'chk',l:'有配偶',h:'夫妻合併申報'},
+   {k:'selfOld',t:'chk',l:'本人年滿 70 歲'},
+   {k:'spouseOld',t:'chk',l:'配偶年滿 70 歲',showIf:'married'},
+   {k:'depU',t:'cnt',l:'受扶養親屬',h:'未滿 70 歲:子女、父母等'},
+   {k:'dep70',t:'cnt',l:'受扶養親屬(70 歲以上)'} ],
+ [ {k:'salarySelf',l:'本人薪資收入',h:'全年,看各類所得扣繳憑單'},
+   {k:'salarySpouse',l:'配偶薪資收入',showIf:'married'},
+   {k:'interest',l:'利息所得'},
+   {k:'withheld',l:'已扣繳 / 已繳稅額',h:'憑單上的扣繳稅額加總'},
+   {opt:1} ],
+ [ {g:'列舉扣除',gh:'自動與標準扣除額比較,取較省的'},
+   {k:'donation',l:'捐贈',h:'上限為綜合所得總額 20%'},
+   {k:'lifeInsurance',l:'人身保險費',h:'每人上限 24,000 元'},
+   {k:'healthInsurance',l:'全民健保費',h:'全額可扣'},
+   {k:'medical',l:'醫藥及生育費'},
+   {k:'disaster',l:'災害損失'},
+   {k:'mortgage',l:'購屋借款利息',h:'自用住宅,實付利息先減儲蓄投資特別扣除額,上限 30 萬'},
+   {g:'特別扣除'},
+   {k:'disabled',t:'cnt',l:'身心障礙'},
+   {k:'students',t:'cnt',l:'就讀大專以上'},
+   {k:'tuition',l:'教育學費實際支出'},
+   {k:'preschool',t:'cnt',l:'未滿 6 歲幼兒',h:'第 1 名 15 萬,第 2 名起每人 22.5 萬'},
+   {k:'longTerm',t:'cnt',l:'長期照顧需求',h:'每人 18 萬;扣除後稅率 20% 以上不可扣'},
+   {k:'noHome',t:'chk',l:'全家無自有住宅'},
+   {k:'rent',l:'房屋租金支出',h:'每戶上限 18 萬;扣除後稅率 20% 以上不可扣',showIf:'noHome'} ]
+];
+var OPT=[
+ {id:'dividend',l:'股利',f:[{k:'dividend',l:'股利所得',h:'國內公司股利或盈餘'}]},
+ {id:'rental',l:'租賃',f:[{k:'rentalIncome',l:'租賃收入',h:'未填實際費用時,扣 43% 必要費用'},{k:'rentalActual',l:'租賃實際必要費用',h:'有憑證才填'}]},
+ {id:'practice',l:'執業',f:[{k:'practice',l:'執業所得(淨額)'}]},
+ {id:'other',l:'其他',f:[{k:'other',l:'其他所得(淨額)',h:'稿費、競技獎金等,已扣成本'}]}
+];
+var SAMPLE={salarySelf:900000,interest:20000,withheld:42000,lifeInsurance:18000,healthInsurance:14000,donation:10000};
+var P=TAX_PARAMS,KEY='tax-calc-v2',state={},step=0,lastText='';
+var $=function(i){return document.getElementById(i)};
+var fmt=function(v){return Math.round(v).toLocaleString('zh-TW')};
+var pct=function(v){return (v*100).toFixed(1).replace(/\.0$/,'')+'%'};
+var wan=function(v){return v>0?'約 '+(v/10000).toFixed(v%10000?1:0).replace(/\B(?=(\d{3})+(?!\d))/g,',')+' 萬':''};
+function sum(o){return Object.keys(o).reduce(function(a,k){return a+o[k]},0)}
+
+function fieldHtml(f){
+  var w='<div class="f" data-wrap="'+f.k+'"><div class="l"><b>'+f.l+'</b>'+(f.h?'<span>'+f.h+'</span>':'')+'</div>';
+  if(f.t==='chk') w+='<input type="checkbox" class="sw" id="'+f.k+'" data-k="'+f.k+'" aria-label="'+f.l+'">';
+  else if(f.t==='cnt') w+='<div class="stepper"><button type="button" data-dec="'+f.k+'" aria-label="減少">−</button><output id="o_'+f.k+'">0</output><button type="button" data-inc="'+f.k+'" aria-label="增加">+</button></div>';
+  else w+='<div class="money"><input type="number" inputmode="numeric" min="0" step="1" id="'+f.k+'" data-k="'+f.k+'" placeholder="0" aria-label="'+f.l+'"><i>元</i></div><div class="hint" id="h_'+f.k+'"></div>';
+  return w+'</div>';
+}
+function build(){
+  $('yr').textContent=P.year;$('fy').textContent=P.filingYear;
+  $('steps').innerHTML=STEPS.map(function(s,i){return '<button type="button" role="tab" data-step="'+i+'"><span>'+(i+1)+'</span>'+s+'</button>'}).join('');
+  var h='';
+  FIELDS.forEach(function(items,i){
+    h+='<div class="panel" data-panel="'+i+'">';
+    items.forEach(function(f){
+      if(f.g) h+='<div class="g">'+f.g+(f.gh?'<small>'+f.gh+'</small>':'')+'</div>';
+      else if(f.opt){
+        h+='<div class="chips" id="chips">'+OPT.map(function(o){return '<button type="button" data-opt="'+o.id+'" aria-pressed="false">＋ '+o.l+'</button>'}).join('')+'</div>';
+        OPT.forEach(function(o){h+='<div class="opt" data-optbox="'+o.id+'" hidden>'+o.f.map(fieldHtml).join('')+'</div>'});
+      } else h+=fieldHtml(f);
+    });
+    h+='</div>';
+  });
+  $('form').innerHTML=h;
+  if((P.verifyKeys||[]).length){$('verify').hidden=false;$('verify').textContent='115 年度每人基本生活費財政部尚未公告,目前暫用 114 年度的 21.3 萬元,只影響「基本生活費差額」這一項,公告後會更新。';}
+}
+function allFields(){var a=[];FIELDS.forEach(function(it){it.forEach(function(f){if(f.k)a.push(f)})});OPT.forEach(function(o){a=a.concat(o.f)});return a}
+function optOn(o){return state['opt_'+o.id]||o.f.some(function(f){return state[f.k]>0})}
+function load(){
+  var saved=null;
+  try{var r=localStorage.getItem(KEY);if(r)saved=JSON.parse(r)}catch(e){}
+  state=saved&&saved.v?saved.v:Object.assign({},SAMPLE);
+  state.__sample=saved?!!saved.s:true;
+  $('sample').hidden=!state.__sample;
+  allFields().forEach(function(f){
+    var el=$(f.k);
+    if(f.t==='chk')el.checked=!!state[f.k];
+    else if(f.t==='cnt')$('o_'+f.k).textContent=state[f.k]||0;
+    else el.value=state[f.k]?state[f.k]:'';
+  });
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({v:state,s:state.__sample}))}catch(e){}}
+function syncUi(){
+  allFields().forEach(function(f){
+    if(f.showIf)document.querySelector('[data-wrap="'+f.k+'"]').hidden=!state[f.showIf];
+    if(!f.t&&$('h_'+f.k))$('h_'+f.k).textContent=wan(state[f.k]||0);
+  });
+  OPT.forEach(function(o){var on=optOn(o);
+    document.querySelector('[data-optbox="'+o.id+'"]').hidden=!on;
+    document.querySelector('[data-opt="'+o.id+'"]').setAttribute('aria-pressed',on?'true':'false');});
+  document.querySelectorAll('[data-panel]').forEach(function(p){p.hidden=+p.dataset.panel!==step});
+  document.querySelectorAll('[data-step]').forEach(function(b){b.setAttribute('aria-selected',+b.dataset.step===step?'true':'false')});
+  $('prev').hidden=step===0;$('next').hidden=step===STEPS.length-1;
+}
+function render(){
+  var out=TaxCalc.compute(state,P),r=out.result,all=out.all,pay=r.payable,refund=pay<0;
+  $('bar').innerHTML='<span class="tag'+(refund?' refund':'')+'">'+(refund?'預估可退稅':'預估應補繳')+'</span><span class="num">'+fmt(Math.abs(pay))+'<small>元</small></span>';
+
+  var tot=r.incomeTotal,sp=sum(r.special)+r.basicLivingDiff;
+  var parts=[['綜合所得淨額',r.net,'#3b5a7a'],['免稅額',r.exemption,'#8aa4bf'],[r.mode==='std'?'標準扣除額':'列舉扣除額',r.deduction,'#b9c9d9'],['特別扣除與差額',sp,'#dbe4ec']];
+  var base=Math.max(tot,1e-9);
+  var bar='<div class="comp" role="img" aria-label="所得總額的組成">'+parts.map(function(p){var w=Math.min(100,Math.max(0,p[1]/base*100));return w>0?'<i style="width:'+w+'%;background:'+p[2]+'"></i>':''}).join('')+'</div>';
+  bar+='<ul class="legend">'+parts.map(function(p){return '<li style="--c:'+p[2]+'"><span>'+p[0]+'</span><em style="font-style:normal">'+fmt(p[1])+'</em></li>'}).join('')+'</ul>';
+  $('comp').innerHTML=tot>0?bar:'<p class="cap" style="margin:0">填入所得後,這裡會顯示收入如何被扣除。</p>';
+
+  var bi=P.brackets.findIndex(function(b){return r.net<=b.upTo});
+  $('ladder').innerHTML='<div class="ladder">'+P.brackets.map(function(b,i){
+    var rng=(i?fmt(P.brackets[i-1].upTo/10000):'0')+(isFinite(b.upTo)?'–'+fmt(b.upTo/10000):' 以上')+' 萬';
+    return '<div'+(i===bi?' class="on"':'')+'><b>'+pct(b.rate)+'</b>'+rng+'</div>'}).join('')+'</div>'
+    +'<p class="cap">淨所得 '+fmt(r.net)+' 元,適用 '+pct(r.marginalRate)+',全年有效稅率 '+pct(r.effectiveRate)+'。'+(r.headroom!==null&&r.net>0?'距離下一級還有 '+fmt(r.headroom)+' 元。':'')+'</p>';
+
+  $('kv').innerHTML=
+    '<dt>所得總額</dt><dd>'+fmt(r.incomeTotal)+'</dd>'
+   +'<dt>免稅額</dt><dd>− '+fmt(r.exemption)+'</dd>'
+   +'<dt>'+(r.mode==='std'?'標準扣除額':'列舉扣除額')+'</dt><dd>− '+fmt(r.deduction)+'</dd>'
+   +'<dt>特別扣除額合計</dt><dd>− '+fmt(sum(r.special))+'</dd>'
+   +(r.basicLivingDiff>0?'<dt>基本生活費差額</dt><dd>− '+fmt(r.basicLivingDiff)+'</dd>':'')
+   +'<dt class="tot">綜合所得淨額</dt><dd class="tot">'+fmt(r.net)+'</dd>'
+   +'<dt>累進稅額</dt><dd>'+fmt(r.progressiveTax)+'</dd>'
+   +(r.dividendCredit>0?'<dt>股利可抵減稅額</dt><dd>− '+fmt(r.dividendCredit)+'</dd>':'')
+   +(r.separateTax>0?'<dt>股利分開計稅(28%)</dt><dd>+ '+fmt(r.separateTax)+'</dd>':'')
+   +'<dt class="tot">全年稅額</dt><dd class="tot">'+fmt(r.totalTax)+'</dd>'
+   +'<dt>已扣繳</dt><dd>− '+fmt(r.withheld)+'</dd>'
+   +'<dt class="tot">'+(refund?'可退稅':'應補繳')+'</dt><dd class="tot">'+fmt(Math.abs(pay))+'</dd>';
+
+  var tips=[];
+  tips.push('最省方案:'+(r.mode==='std'?'標準扣除額':'列舉扣除額')+(state.dividend>0?'、股利'+(r.div==='combined'?'合併計稅':'分開計稅'):'')+'。');
+  var std=all['std-'+r.div],it=all['item-'+r.div],d=Math.abs(std.totalTax-it.totalTax);
+  tips.push(r.mode==='std'?(d>0?'列舉會多繳 '+fmt(d)+' 元;列舉扣除額要再多 '+fmt(Math.max(0,std.deduction-it.deduction))+' 元才會比標準划算。':'標準與列舉稅額相同。'):'列舉比標準扣除額少繳 '+fmt(d)+' 元。');
+  if(state.dividend>0){var o=all[r.mode+'-'+(r.div==='combined'?'separate':'combined')];tips.push('股利'+(r.div==='combined'?'合併':'分開')+'計稅比另一種少繳 '+fmt(Math.abs(o.totalTax-r.totalTax))+' 元。');}
+  if(r.mode==='item'&&r.marginalRate>0)tips.push('目前每多捐贈 1 萬元,約少繳 '+fmt(10000*r.marginalRate)+' 元(未超過捐贈上限時)。');
+  $('tips').innerHTML=tips.map(function(t){return'<li>'+t+'</li>'}).join('');
+  lastText=['綜所稅試算('+P.year+' 年度)',(refund?'預估退稅 ':'預估補繳 ')+fmt(Math.abs(pay))+' 元','所得總額 '+fmt(r.incomeTotal),'綜合所得淨額 '+fmt(r.net),'全年稅額 '+fmt(r.totalTax),'已扣繳 '+fmt(r.withheld)].concat(tips).join('\n');
+
+  var names={std:'標準',item:'列舉',combined:'合併',separate:'分開'};
+  var t='<tr><th>方案</th><th>淨所得</th><th>全年稅額</th><th>應補 / 退</th></tr>';
+  Object.keys(all).forEach(function(k){var s=all[k],p=k.split('-');
+    t+='<tr'+(k===out.best?' class="best"':'')+'><td>'+names[p[0]]+' / '+names[p[1]]+(k===out.best?'(最省)':'')+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.totalTax)+'</td><td>'+(s.payable<0?'退 '+fmt(-s.payable):'補 '+fmt(s.payable))+'</td></tr>'});
+  $('cmp').innerHTML=t;
+}
+function touched(){state.__sample=false;$('sample').hidden=true}
+function update(){syncUi();render();save()}
+build();load();update();
+
+$('form').addEventListener('input',function(e){
+  var k=e.target.dataset.k;if(!k)return;
+  state[k]=e.target.type==='checkbox'?e.target.checked:(parseFloat(e.target.value)||0);
+  touched();update();
+});
+$('form').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  var k=b.dataset.inc||b.dataset.dec;
+  if(k){state[k]=Math.max(0,Math.min(20,(state[k]||0)+(b.dataset.inc?1:-1)));$('o_'+k).textContent=state[k];touched();update();return}
+  if(b.dataset.opt){var o=OPT.filter(function(x){return x.id===b.dataset.opt})[0];
+    if(optOn(o)){state['opt_'+o.id]=false;o.f.forEach(function(f){state[f.k]=0;$(f.k).value=''})}else state['opt_'+o.id]=true;
+    touched();update()}
+});
+$('steps').addEventListener('click',function(e){var b=e.target.closest('button');if(b){step=+b.dataset.step;syncUi()}});
+$('prev').onclick=function(){step=Math.max(0,step-1);syncUi()};
+$('next').onclick=function(){step=Math.min(STEPS.length-1,step+1);syncUi()};
+$('clear').onclick=function(){state={__sample:false};allFields().forEach(function(f){
+  if(f.t==='chk')$(f.k).checked=false;else if(f.t==='cnt')$('o_'+f.k).textContent=0;else $(f.k).value=''});
+  $('sample').hidden=true;update()};
+$('copy').onclick=function(){var b=this,done=function(m){b.textContent=m;setTimeout(function(){b.textContent='複製摘要'},1500)};
+  try{navigator.clipboard.writeText(lastText).then(function(){done('已複製')},function(){done('請手動選取複製')})}catch(e){done('請手動選取複製')}};
+</script>
+</body></html>
