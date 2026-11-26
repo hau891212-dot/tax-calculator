@@ -1,476 +1,441 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>永義房屋承峰店｜9A執行業務所得 報稅試算系統</title>
-    <style>
-        :root {
-            --navy: #001F5B;
-            --amber: #FDB913;
-            --green: #008C4A;
-            --red: #D82A29;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --card-bg: rgba(255, 255, 255, 0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>個人綜合所得稅試算</title>
+<style>
+/* 玻璃卡風格:柔光彩色背景 + 半透明霧面卡片(backdrop-filter),靛藍→紫漸層為唯一重點色。填完 → 按按鈕 → 才顯示結果與級距。 */
+:root{
+  --ink:#1b2340; --sub:#5b6585; --sep:rgba(27,35,64,.09);
+  --glass:rgba(255,255,255,.52); --glass-hi:rgba(255,255,255,.72); --glass-lo:rgba(255,255,255,.34); --edge:rgba(255,255,255,.78);
+  --shadow:0 10px 36px rgba(70,80,160,.16),inset 0 1px 0 rgba(255,255,255,.85);
+  --blue:#4660f0; --violet:#8a5cff; --grad:linear-gradient(135deg,#4f6bff 0%,#8a5cff 100%);
+  --green:#12804a; --red:#d4203c; --orange:#b4540a; --orange-soft:rgba(255,236,206,.85);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Hiragino Sans","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.47;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-weight:500;
+  background:linear-gradient(135deg,#dce9ff 0%,#e8ddff 48%,#ffe2ee 100%) fixed;
+  padding:0 max(16px,env(safe-area-inset-left)) calc(124px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-right))}
+[hidden]{display:none!important}
+/* 背景柔光球 */
+.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.62}
+.bg i:nth-child(1){width:46vmax;height:46vmax;left:-14vmax;top:-12vmax;background:#7ea6ff;animation:fl1 26s ease-in-out infinite alternate}
+.bg i:nth-child(2){width:40vmax;height:40vmax;right:-12vmax;top:18vh;background:#c3a2ff;animation:fl2 30s ease-in-out infinite alternate}
+.bg i:nth-child(3){width:38vmax;height:38vmax;left:12vw;bottom:-16vmax;background:#ffa9c8;animation:fl3 34s ease-in-out infinite alternate}
+.bg i:nth-child(4){width:26vmax;height:26vmax;right:8vw;bottom:6vh;background:#8fe6d3;opacity:.45;animation:fl1 38s ease-in-out infinite alternate-reverse}
+@keyframes fl1{to{transform:translate(6vmax,4vmax) scale(1.08)}}
+@keyframes fl2{to{transform:translate(-5vmax,6vmax) scale(.94)}}
+@keyframes fl3{to{transform:translate(7vmax,-4vmax) scale(1.1)}}
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto}
+header{padding:calc(36px + env(safe-area-inset-top)) 4px 6px}
+h1{font-size:2.1rem;font-weight:700;letter-spacing:-.025em;margin:0;line-height:1.15;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.lead{color:var(--sub);font-size:1.02rem;font-weight:600;margin:8px 0 0}
+.example{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.link{border:1px solid var(--edge);background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--blue);font:inherit;font-size:.9rem;font-weight:700;padding:7px 16px;border-radius:99px;cursor:pointer;box-shadow:0 2px 10px rgba(70,80,160,.1)}
+.link:active{opacity:.6}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            min-height: 100vh;
-            background: 
-                radial-gradient(circle at 10% 0%, rgba(253,185,19,0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 100%, rgba(0,140,74,0.05) 0%, transparent 40%),
-                linear-gradient(135deg, #fdfbf7 0%, #f5f3eb 100%);
-            display: flex;
-            justify-content: center;
-            color: #2c3e50;
-        }
+/* 玻璃面板共用 */
+.list,details.more>summary,.card,.hero,.cta{
+  background:var(--glass);border:1px solid var(--edge);box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(26px) saturate(165%);backdrop-filter:blur(26px) saturate(165%)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .list,details.more>summary,.card,.hero{background:rgba(255,255,255,.88)}.cta{background:rgba(250,250,255,.95)}}
 
-        .calculator-container {
-            width: 100%;
-            max-width: 750px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0, 31, 91, 0.08);
-        }
+.group{margin-top:26px}
+.group-title{font-size:.82rem;font-weight:800;color:var(--sub);letter-spacing:.04em;margin:0 0 8px 14px}
+.list{border-radius:24px;overflow:hidden}
+.footer{color:var(--sub);font-size:.82rem;font-weight:600;line-height:1.55;margin:9px 14px 0}
+.row{border-bottom:1px solid var(--sep);padding:0 18px}
+.row:last-child{border-bottom:0}
+.row-main{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:8px 0}
+.row-label{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
+.row-label .t{font-size:1.04rem;line-height:1.3;font-weight:700}
+.row-label .s{display:block;color:var(--sub);font-size:.8rem;font-weight:600;line-height:1.3;margin-top:1px}
+.q{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--edge);background:var(--glass-hi);color:var(--blue);font:inherit;font-size:.82rem;font-weight:700;line-height:1;padding:0;cursor:pointer;box-shadow:0 2px 8px rgba(70,80,160,.15)}
+.q:active{transform:scale(.92)}
+.q[aria-expanded="true"]{background:var(--grad);color:#fff;border-color:transparent}
+.help{margin:0 0 13px;background:var(--glass-lo);border:1px solid var(--edge);border-radius:16px;padding:13px 15px;font-size:.93rem;font-weight:600;line-height:1.62;color:#222b4d;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.help b{display:block;font-size:.78rem;color:var(--blue);font-weight:800;margin-bottom:2px;letter-spacing:.04em}
+.help p{margin:0}.help p+p{margin-top:9px}
+.ctl{flex:none;display:flex;align-items:center;justify-content:flex-end}
 
-        h2 {
-            text-align: center;
-            color: var(--navy);
-            margin: 0 0 10px 0;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+/* 控制元件 */
+.money{display:flex;align-items:center;gap:6px;background:var(--glass-lo);border:1px solid var(--edge);border-radius:14px;padding:0 12px;box-shadow:inset 0 1px 3px rgba(70,80,160,.08)}
+.money input{width:8.4em;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1.08rem;font-weight:800;text-align:right;padding:9px 0;border-radius:0;-moz-appearance:textfield;font-variant-numeric:tabular-nums}
+.money input::-webkit-inner-spin-button{display:none}
+.money input::placeholder{color:#a3abc8;font-weight:600}
+.money input:focus{outline:0}
+.money i{font-style:normal;color:var(--sub);font-size:.92rem;font-weight:700}
+.money:focus-within{background:var(--glass-hi);border-color:#fff;box-shadow:0 0 0 3px rgba(79,107,255,.28)}
+.row:focus-within .money i{color:var(--blue)}
+.stepper{display:flex;align-items:center;background:var(--glass-lo);border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+.stepper button{width:44px;height:38px;border:0;background:transparent;color:var(--blue);font-size:1.4rem;line-height:1;padding:0;cursor:pointer}
+.stepper button:active{background:rgba(79,107,255,.14)}
+.stepper output{min-width:32px;text-align:center;font-size:1.08rem;font-weight:800;font-variant-numeric:tabular-nums}
+.seg{display:flex;background:var(--glass-lo);border:1px solid var(--edge);border-radius:13px;padding:3px;box-shadow:inset 0 1px 3px rgba(70,80,160,.08)}
+.seg button{border:0;background:transparent;color:var(--sub);font:inherit;font-size:.93rem;font-weight:600;padding:7px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--grad);color:#fff;font-weight:800;box-shadow:0 3px 10px rgba(79,107,255,.35)}
+.sw{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;background:rgba(27,35,64,.16);position:relative;cursor:pointer;transition:background .2s;margin:0;flex:none;border:1px solid var(--edge)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(27,35,64,.3);transition:transform .2s}
+.sw:checked{background:var(--grad);border-color:transparent}.sw:checked::after{transform:translateX(20px)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid rgba(79,107,255,.5);outline-offset:2px}
+details.more{margin-top:26px}
+details.more>summary{list-style:none;cursor:pointer;border-radius:24px;padding:17px 18px;display:flex;justify-content:space-between;align-items:center;font-size:1.04rem;font-weight:700}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::after{content:"＋";color:var(--blue);font-weight:600}
+details.more[open]>summary::after{content:"－"}
+details.more[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0;box-shadow:none}
+details.more>.list{border-top-left-radius:0;border-top-right-radius:0;border-top:1px solid var(--sep)}
+details.more .sumsub{display:block;color:var(--sub);font-size:.8rem;font-weight:600}
 
-        .subtitle {
-            text-align: center;
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 24px;
-        }
+/* 底部玻璃主按鈕列 */
+.cta{position:fixed;left:0;right:0;bottom:0;z-index:20;border-width:1px 0 0;border-radius:24px 24px 0 0;
+  padding:12px max(16px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.cta .in{max-width:640px;margin:0 auto}
+.cta button{width:100%;height:54px;border:1px solid rgba(255,255,255,.5);border-radius:18px;background:var(--grad);color:#fff;font:inherit;font-size:1.12rem;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 24px rgba(79,107,255,.4),inset 0 1px 0 rgba(255,255,255,.45)}
+.cta button:active{transform:scale(.985);opacity:.9}
 
-        /* 級距表格專用樣式 */
-        .tax-table-container {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-
-        .tax-table-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--navy);
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .tax-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .tax-table th, .tax-table td {
-            padding: 8px 10px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 31, 91, 0.05);
-        }
-
-        .tax-table th {
-            color: #555;
-            font-weight: 600;
-            background: rgba(0, 31, 91, 0.03);
-        }
-
-        .tax-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .section {
-            background: var(--card-bg);
-            border-radius: 18px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255,255,255,0.7);
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            border-bottom: 2px solid var(--amber);
-            padding-bottom: 8px;
-            width: fit-content;
-        }
-
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            font-size: 13px;
-            color: var(--navy);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 31, 91, 0.1);
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--amber);
-            box-shadow: 0 0 0 4px rgba(253, 185, 19, 0.2);
-        }
-
-        .btn-calculate {
-            width: 100%;
-            padding: 18px;
-            background: var(--navy);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 31, 91, 0.2);
-        }
-
-        .btn-calculate:hover {
-            transform: translateY(-2px);
-            background: #002a7a;
-            box-shadow: 0 6px 20px rgba(0, 31, 91, 0.3);
-        }
-
-        .result-panel {
-            margin-top: 30px;
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            border-left: 6px solid var(--amber);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            display: none;
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 15px;
-            color: #444;
-        }
-
-        .result-item.highlight-deduction {
-            background: rgba(0, 140, 74, 0.08);
-            padding: 10px;
-            border-radius: 8px;
-            color: var(--green);
-            font-weight: 600;
-            margin: 8px 0;
-        }
-
-        .rate-badge {
-            background: var(--amber);
-            color: var(--navy);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 16px;
-        }
-
-        .final-tax-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px dashed #ddd;
-        }
-
-        .final-tax-label {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--navy);
-        }
-
-        .final-tax-amount {
-            font-size: 32px;
-            color: var(--red);
-            font-weight: 800;
-        }
-
-        .info-tip {
-            font-size: 12px;
-            color: #888;
-            text-align: center;
-            margin-top: 20px;
-            line-height: 1.6;
-        }
-    </style>
+/* 結果 */
+#result{margin-top:34px;scroll-margin-top:16px}
+.stale{background:var(--orange-soft);color:var(--orange);border:1px solid rgba(255,255,255,.8);border-radius:16px;padding:11px 15px;font-size:.93rem;font-weight:800;margin-bottom:12px}
+.dim{opacity:.35;transition:opacity .2s}
+.hero{border-radius:28px;padding:28px 22px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-40% -20% auto -20%;height:70%;background:radial-gradient(closest-side,rgba(255,255,255,.75),transparent);pointer-events:none}
+.hero>*{position:relative}
+.hero .k{color:var(--sub);font-size:.95rem;font-weight:700}
+.hero .n{font-size:3.1rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin:4px 0;font-variant-numeric:tabular-nums}
+.hero .n.pay{color:var(--red)}.hero .n.refund{color:var(--green)}
+.hero .n small{font-size:1.1rem;font-weight:700;color:var(--sub);margin-left:4px}
+.hero .why{color:var(--sub);font-size:.95rem;font-weight:600}
+.card{border-radius:24px;padding:20px 18px;margin-top:14px}
+.card h3{font-size:1.12rem;font-weight:800;margin:0 0 4px}
+.card .cap{color:var(--sub);font-size:.88rem;font-weight:600;margin:0 0 12px}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px}
+.ladder div{background:var(--glass-lo);border:1px solid var(--edge);border-radius:14px;padding:11px 2px 9px;text-align:center;color:var(--sub);font-size:.68rem;font-weight:600;line-height:1.35}
+.ladder div b{display:block;font-size:1.06rem;font-weight:800;color:var(--ink)}
+.ladder div.on{background:var(--grad);border-color:transparent;color:rgba(255,255,255,.9);box-shadow:0 6px 18px rgba(79,107,255,.4)}
+.ladder div.on b{color:#fff}
+.mine{margin-top:14px;font-size:1.04rem;font-weight:700}
+.mine b{color:var(--blue);font-weight:800}
+.mini{color:var(--sub);font-size:.88rem;font-weight:600;margin-top:6px}
+.line{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--sep);font-variant-numeric:tabular-nums;font-size:.99rem;font-weight:600}
+.line:last-child{border-bottom:0}
+.line span:first-child{color:var(--sub)}
+.line.sum span{color:var(--ink);font-weight:800}
+.chip{display:inline-block;background:rgba(79,107,255,.14);color:var(--blue);border-radius:99px;padding:0 9px;font-size:.76rem;font-weight:700;margin-left:6px}
+ul.tips{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.96rem;font-weight:600}
+ul.tips li{padding-left:22px;position:relative}
+ul.tips li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.89rem;font-weight:600;font-variant-numeric:tabular-nums}
+th,td{padding:10px 6px;text-align:right;border-bottom:1px solid var(--sep);white-space:nowrap}
+th{color:var(--sub);font-weight:800;font-size:.78rem}
+th:first-child,td:first-child{text-align:left}
+tr.hit td{background:rgba(79,107,255,.16);color:var(--blue);font-weight:800}
+tr.best td{color:var(--blue);font-weight:800}
+.disc{color:var(--sub);font-size:.78rem;font-weight:600;line-height:1.6;margin:24px 8px 0;text-align:center}
+@media (max-width:420px){
+  h1{font-size:1.85rem}
+  .hero .n{font-size:2.6rem}
+  .money input{width:6.6em}
+  .seg button{padding:7px 10px}
+  .row{padding:0 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
 </head>
 <body>
+<div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="wrap">
+  <header>
+    <h1>個人綜合所得稅試算</h1>
+    <p class="lead">照順序填,不確定就點旁邊的 <b style="color:var(--blue)">?</b> 看白話解說。填完按下方「計算我的稅」,馬上告訴你要繳多少、落在哪一級。</p>
+    <div class="example"><button type="button" class="link" id="fillExample">帶入範例看看</button> <button type="button" class="link" id="clearAll" style="margin-left:14px">全部清空</button></div>
+  </header>
 
-<div class="calculator-container">
-    <h2>永義房屋 承峰店</h2>
-    <div class="subtitle">9A 執行業務所得稅務試算系統 (2026 全方位版)</div>
+  <div id="form"></div>
 
-    <div class="tax-table-container">
-        <div class="tax-table-title">📌 (115年度申報) 綜合所得稅課稅級距表</div>
-        <table class="tax-table">
-            <thead>
-                <tr>
-                    <th>綜合所得淨額 (新台幣)</th>
-                    <th>稅率</th>
-                    <th>累進差額</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>0 ～ 590,000元</td><td>5%</td><td>0元</td></tr>
-                <tr><td>590,001 ～ 1,330,000元</td><td>12%</td><td>41,300元</td></tr>
-                <tr><td>1,330,001 ～ 2,660,000元</td><td>20%</td><td>147,700元</td></tr>
-                <tr><td>2,660,001 ～ 4,980,000元</td><td>30%</td><td>413,700元</td></tr>
-                <tr><td>4,980,001元 以上</td><td>40%</td><td>911,700元</td></tr>
-            </tbody>
-        </table>
-    </div>
+  <section id="result" hidden>
+    <div class="stale" id="stale" hidden>你改了資料,下面是舊的結果。請再按一次「計算我的稅」。</div>
+    <div id="out"></div>
+  </section>
 
-    <div class="section">
-        <div class="section-title">Step 1. 收入與基本家庭狀況</div>
-        <div class="input-grid">
-            <div class="input-group">
-                <label>全年 9A 總收入 (元)</label>
-                <input type="number" id="income" value="1200000" step="10000">
-            </div>
-            <div class="input-group">
-                <label>婚姻狀態</label>
-                <select id="marital">
-                    <option value="single">單身 / 單親</option>
-                    <option value="married">有配偶</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>一般扶養人數 (未滿70歲)</label>
-                <input type="number" id="dep-normal" value="2" min="0">
-            </div>
-            <div class="input-group">
-                <label>長者扶養人數 (滿70歲以上)</label>
-                <input type="number" id="dep-elderly" value="0" min="0">
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Step 2. 幼兒與特別扣除額 (無則免填)</div>
-        <div class="input-grid">
-            <div class="input-group">
-                <label>6歲以下幼兒 (第 1 胎)</label>
-                <select id="child-1">
-                    <option value="0">無</option>
-                    <option value="1">1 位 (特扣 15 萬)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>6歲以下幼兒 (第 2 胎以上數量)</label>
-                <input type="number" id="child-2" value="0" min="0" placeholder="每位特扣 22.5 萬">
-            </div>
-            <div class="input-group">
-                <label>大專院校子女數量</label>
-                <input type="number" id="college" value="0" min="0" placeholder="每位特扣 2.5 萬">
-            </div>
-            <div class="input-group">
-                <label>身心障礙 / 長照需求人數</label>
-                <input type="number" id="disability-ltc" value="0" min="0" placeholder="每位特扣 21.8萬/12萬">
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Step 3. 列舉開銷 (系統將與標準扣除額自動比對)</div>
-        <div class="input-grid">
-            <div class="input-group">
-                <label>每月房貸利息 (元)</label>
-                <input type="number" id="mortgage" value="18000" step="1000">
-            </div>
-            <div class="input-group">
-                <label>全年醫藥/保險/捐贈加總 (元)</label>
-                <input type="number" id="other-itemized" value="0" step="1000">
-            </div>
-        </div>
-    </div>
-
-    <button class="btn-calculate" onclick="calculateTax()">一鍵精算稅額與級距</button>
-
-    <div class="result-panel" id="result-box">
-        <div class="result-item">
-            <span>① 9A 收入 (不扣成本)</span>
-            <span id="res-net-income">0</span>
-        </div>
-        <div class="result-item">
-            <span id="label-exemption">② 扣除免稅額 (本人+扶養)</span>
-            <span id="res-exemption">0</span>
-        </div>
-        <div class="result-item highlight-deduction">
-            <span id="label-deduction">③ 扣除一般扣除額</span>
-            <span id="res-deduction">0</span>
-        </div>
-        <div class="result-item highlight-deduction" style="background: rgba(253, 185, 19, 0.1); color: var(--navy);">
-            <span id="label-special">④ 扣除特別扣除額加總</span>
-            <span id="res-special">0</span>
-        </div>
-        <div class="result-item" style="color: var(--navy); font-weight: 600; font-size: 16px; border-top: 1px dashed #ccc; padding-top: 12px;">
-            <span>= 綜合所得淨額 (計稅基礎)</span>
-            <span id="res-taxable">0</span>
-        </div>
-        
-        <div class="result-item" style="margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px;">
-            <span style="font-weight: 600; color: #555;">適用稅率級距</span>
-            <span class="rate-badge" id="res-rate-badge">0%</span>
-        </div>
-
-        <div class="final-tax-box">
-            <span class="final-tax-label">最終應納綜合所得稅</span>
-            <span class="final-tax-amount" id="res-final-tax">0</span>
-        </div>
-    </div>
-
-    <div class="info-tip">
-        ※ 系統採 115 年度申報最新法規自動試算。<br>
-        ※ 自動判斷房貸/醫藥費 (列舉) 與 單身/配偶 (標準) 孰優孰劣，為同仁套用最有利方案。
-    </div>
+  <p class="disc">這是依財政部公告制度做的簡化試算,結果僅供參考,未含基本稅額(AMT)、財產交易損失、境外所得、夫妻分開申報等情形。實際稅額以國稅局核定為準,正式申報請使用財政部電子結算申報繳稅系統。</p>
 </div>
 
+<div class="cta"><div class="in"><button type="button" id="calc">計算我的稅</button></div></div>
+
 <script>
-    function formatCurrency(num) {
-        return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(num);
-    }
+/* ============ 稅制參數(114:國稅局試算現行;115:財政部 114/11/27 公告)============ */
+var PARAMS={
+  114:{name:'114 年度',ex:97000,exOld:145500,stdS:131000,stdM:262000,salary:218000,dis:218000,bl:213000,
+       br:[{up:590000,r:.05},{up:1330000,r:.12},{up:2660000,r:.20},{up:4980000,r:.30},{up:Infinity,r:.40}]},
+  115:{name:'115 年度',ex:101000,exOld:151500,stdS:136000,stdM:272000,salary:227000,dis:227000,bl:213000,blProvisional:true,
+       br:[{up:610000,r:.05},{up:1380000,r:.12},{up:2770000,r:.20},{up:5190000,r:.30},{up:Infinity,r:.40}]}
+};
+var COMMON={savings:270000,tuition:25000,kid1:150000,kid2:225000,ltc:180000,rentLimit:180000,mortLimit:300000,lifeIns:24000,
+  donRatio:.20,rentalRate:.43,divCreditRate:.085,divCreditCap:80000,divSepRate:.28};
+function P(year){return Object.assign({},COMMON,PARAMS[year])}
 
-    function calculateTax() {
-        // Step 1: 收入與基本狀況
-        const income = parseFloat(document.getElementById('income').value) || 0;
-        const marital = document.getElementById('marital').value;
-        const depNormal = parseInt(document.getElementById('dep-normal').value) || 0;
-        const depElderly = parseInt(document.getElementById('dep-elderly').value) || 0;
-        
-        // Step 2: 特別扣除額
-        const child1 = parseInt(document.getElementById('child-1').value) || 0;
-        const child2 = parseInt(document.getElementById('child-2').value) || 0;
-        const college = parseInt(document.getElementById('college').value) || 0;
-        const disabilityLtc = parseInt(document.getElementById('disability-ltc').value) || 0; // 簡化：身障+長照約33.8萬，此處合併以平均或最常見的身障21.8萬計
+/* ============ 計算(純函式)============ */
+function N(v){v=Number(v);return isFinite(v)&&v>0?v:0}
+function bIdx(net,Y){for(var i=0;i<Y.br.length;i++)if(net<=Y.br[i].up)return i;return Y.br.length-1}
+function progTax(net,Y){var t=0,lo=0;for(var i=0;i<Y.br.length;i++){if(net>lo)t+=(Math.min(net,Y.br[i].up)-lo)*Y.br[i].r;lo=Y.br[i].up}return t}
+function bDiff(i,Y){var lo=i?Y.br[i-1].up:0;return Math.round(Y.br[i].r*lo-progTax(lo,Y))}
 
-        // Step 3: 列舉扣除
-        const monthlyMortgage = parseFloat(document.getElementById('mortgage').value) || 0;
-        const otherItemized = parseFloat(document.getElementById('other-itemized').value) || 0;
+function scenario(inp,Y,mode,div){
+  var married=!!inp.married,depU=N(inp.depU),dep70=N(inp.dep70);
+  var members=1+(married?1:0)+depU+dep70;
+  var exemption=(inp.selfOld?Y.exOld:Y.ex)+(married?(inp.spouseOld?Y.exOld:Y.ex):0)+dep70*Y.exOld+depU*Y.ex;
+  var salS=N(inp.salarySelf),salP=married?N(inp.salarySpouse):0;
+  var interest=N(inp.interest),dividend=N(inp.dividend);
+  var rentNet=N(inp.rentalActual)>0?Math.max(0,N(inp.rentalIncome)-N(inp.rentalActual)):N(inp.rentalIncome)*(1-Y.rentalRate);
+  var practice=Math.max(0,N(inp.practiceGross)-N(inp.practiceCost));
+  var divIn=div==='combined'?dividend:0;
+  var gross=salS+salP+interest+divIn+rentNet+practice+N(inp.other);
+  var savings=Math.min(Y.savings,interest+divIn);
 
-        // 計算邏輯
-        // 1. 9A淨收入
-        const net9AIncome = income;
+  var deduction,detail={};
+  if(mode==='std'){deduction=married?Y.stdM:Y.stdS}
+  else{
+    detail.donation=Math.min(N(inp.donation),gross*Y.donRatio);
+    detail.insurance=Math.min(N(inp.lifeInsurance),Y.lifeIns*members)+N(inp.healthInsurance);
+    detail.medical=N(inp.medical);
+    detail.mortgage=Math.min(Y.mortLimit,Math.max(0,N(inp.mortM)*12-savings));
+    deduction=detail.donation+detail.insurance+detail.medical+detail.mortgage;
+  }
+  var sp={};
+  sp.salary=Math.min(salS,Y.salary)+Math.min(salP,Y.salary);
+  sp.savings=savings;
+  sp.dis=N(inp.dis)*Y.dis;
+  sp.tuition=N(inp.students)*Y.tuition;
+  var kc=N(inp.kids);sp.kids=kc>0?Y.kid1+(kc-1)*Y.kid2:0;
+  sp.ltc=N(inp.ltc)*Y.ltc;
+  sp.rent=inp.noHome?Math.min(N(inp.rent),Y.rentLimit):0;
+  // 長照、租金:扣除後適用稅率 20% 以上,或股利選分開計稅,不得扣除
+  var core=sp.salary+sp.savings+sp.dis+sp.tuition+sp.kids;
+  var probe=Math.max(0,gross-exemption-deduction-core-sp.ltc-sp.rent);
+  var blocked=false;
+  if((sp.ltc>0||sp.rent>0)&&(Y.br[bIdx(probe,Y)].r>=.20||(div==='separate'&&dividend>0))){sp.ltc=0;sp.rent=0;blocked=true}
+  var spTotal=core+sp.ltc+sp.rent;
+  // 基本生活費差額:總額 −(免稅額+一般扣除額+特別扣除額,但不含薪資、儲蓄投資)
+  var blTotal=Y.bl*members;
+  var blUsed=exemption+deduction+sp.dis+sp.tuition+sp.kids+sp.ltc+sp.rent;
+  var blDiff=Math.max(0,blTotal-blUsed);
+  var net=Math.max(0,gross-exemption-deduction-spTotal-blDiff);
+  var tax=progTax(net,Y),credit=0,sep=0;
+  if(div==='combined')credit=Math.min(dividend*Y.divCreditRate,Y.divCreditCap);else sep=dividend*Y.divSepRate;
+  var total=Math.round(tax-credit+sep),withheld=N(inp.withheld),bi=bIdx(net,Y),up=Y.br[bi].up;
+  return {mode:mode,div:div,members:members,gross:gross,incomeTotal:gross+(div==='separate'?dividend:0),exemption:exemption,
+    deduction:deduction,detail:detail,special:sp,spTotal:spTotal,blocked:blocked,blDiff:blDiff,net:net,bi:bi,rate:Y.br[bi].r,diff:bDiff(bi,Y),
+    progressive:Math.round(tax),credit:credit,sepTax:sep,total:total,withheld:withheld,payable:total-withheld,
+    headroom:isFinite(up)?up-net:null,nextRate:bi<Y.br.length-1?Y.br[bi+1].r:null};
+}
+function compute(inp,year){
+  var Y=P(year),all={},best=null;
+  ['std-combined','std-separate','item-combined','item-separate'].forEach(function(k){
+    var p=k.split('-');all[k]=scenario(inp,Y,p[0],p[1]);
+    if(best===null||all[k].total<all[best].total)best=k});
+  return {Y:Y,all:all,best:best,r:all[best]};
+}
 
-        // 2. 免稅額計算 (9.7萬 / 14.55萬)
-        const spouseCount = marital === 'married' ? 1 : 0;
-        const totalPeopleNormal = 1 + spouseCount + depNormal; 
-        const exemption = (totalPeopleNormal * 97000) + (depElderly * 145500);
+/* ============ 畫面資料 ============ */
+function wanTxt(v){return v>0?'約 '+(v/10000).toFixed(v%10000?1:0).replace(/\B(?=(\d{3})+(?!\d))/g,',')+' 萬':''}
+var f=function(v){return Math.round(v).toLocaleString('zh-TW')};
+var pc=function(v){return Math.round(v*100)+'%'};
+var wn=function(v){return (v/10000).toFixed(v%10000?2:0).replace(/(\.\d)0$/,'$1')+' 萬'};
 
-        // 3. 特別扣除額加總
-        const specialChild = (child1 * 150000) + (child2 * 225000);
-        const specialCollege = college * 25000;
-        const specialDisabilityLtc = disabilityLtc * 218000; // 預設帶入身心障礙 21.8 萬
-        const totalSpecial = specialChild + specialCollege + specialDisabilityLtc;
+/* t: seg(分段) / cnt(加減) / chk(開關) / 其餘為金額。help 為函式,數字隨年度更新 */
+var GROUPS=[
+ {title:'第 1 步・基本資料',footer:'年度選錯會差很多:114 年度是去年賺的(今年 5 月已申報),115 年度是今年賺的(明年 5 月申報)。',items:[
+  {k:'year',t:'seg',l:'要算哪一年',opts:[['114','114 年度'],['115','115 年度']],def:'115',
+   help:function(Y){return ['<b>這是什麼</b>你要算「哪一年賺的錢」。','<b>怎麼選</b>114 年度=2025 年賺的,今年 5 月已經申報過,國稅局網站目前試算也是用這組數字。115 年度=2026 年賺的,明年 5 月才申報,數字是財政部已公告的新版,稅會比較輕。想預估今年的稅就選 115。']}},
+  {k:'married',t:'seg',l:'婚姻狀態',opts:[['0','單身'],['1','有配偶']],def:'0',
+   help:function(Y){return ['<b>這是什麼</b>有配偶時,夫妻的收入要合在一起報。','<b>怎麼選</b>單身、離婚、單親都選「單身」。結婚了選「有配偶」,下面會多出配偶的欄位。','<b>差在哪</b>有配偶的標準扣除額是 '+wn(Y.stdM)+',單身是 '+wn(Y.stdS)+',大約差一倍。']}},
+  {k:'selfOld',t:'chk',l:'我已滿 70 歲',
+   help:function(Y){return ['<b>這是什麼</b>你本人如果年滿 70 歲,自己的免稅額比較高。','<b>差在哪</b>一般是 '+wn(Y.ex)+',滿 70 歲是 '+wn(Y.exOld)+'。']}},
+  {k:'spouseOld',t:'chk',l:'配偶已滿 70 歲',showIf:'married',
+   help:function(Y){return ['<b>這是什麼</b>配偶年滿 70 歲,免稅額從 '+wn(Y.ex)+' 變成 '+wn(Y.exOld)+'。']}},
+  {k:'depU',t:'cnt',l:'扶養的家人',s:'未滿 70 歲',
+   help:function(Y){return ['<b>這是什麼</b>你實際在養的家人:沒有收入的小孩、沒工作的爸媽或祖父母(未滿 70 歲)。','<b>怎麼填</b>一個一個算人數。不用算你自己和配偶,系統會自動加。','<b>好處</b>每多一位,可以少算 '+wn(Y.ex)+' 的所得(免稅額)。']}},
+  {k:'dep70',t:'cnt',l:'扶養的長輩',s:'滿 70 歲以上',
+   help:function(Y){return ['<b>這是什麼</b>你扶養的爸媽、祖父母,而且已經年滿 70 歲。','<b>好處</b>每位可以少算 '+wn(Y.exOld)+' 的所得,比一般家人多。']}}
+ ]},
+ {title:'第 2 步・你的收入',footer:'只填你有的,沒有就空白。金額都是「全年合計」。',items:[
+  {k:'salarySelf',l:'我的薪資',s:'全年薪水加獎金',ph:'0',
+   help:function(Y){return ['<b>這是什麼</b>公司發給你的薪水、年終、獎金,一整年加起來。','<b>在哪看</b>公司給的「各類所得扣繳憑單」,看「給付總額」。','<b>系統會幫你</b>自動扣「薪資特別扣除額」(每人最多 '+wn(Y.salary)+'),你不用另外算。']}},
+  {k:'salarySpouse',l:'配偶的薪資',s:'全年薪水加獎金',showIf:'married',ph:'0',
+   help:function(Y){return ['<b>這是什麼</b>配偶一整年的薪水加獎金。夫妻要合併報稅,配偶也有自己的薪資特別扣除額(最多 '+wn(Y.salary)+')。']}},
+  {k:'practiceGross',l:'接案、佣金等收入',s:'非薪水的工作收入(9A)',ph:'0',
+   help:function(Y){return ['<b>這是什麼</b>不是領薪水、而是靠接案、講師費、佣金、稿費這類「執行業務」賺的錢,扣繳憑單上類別通常是 9A、9B。','<b>怎麼填</b>先填全年的總收入。','<b>注意</b>國稅局試算不會幫你自動扣 20% 成本。有實際成本單據的話,填在下一欄。']}},
+  {k:'practiceCost',l:'上面工作的成本費用',s:'有單據才填',showIf:'practiceGross',ph:'0',
+   help:function(Y){return ['<b>這是什麼</b>為了做這份工作花的錢,例如材料、交通、設備。','<b>怎麼填</b>有收據、發票才填;沒有就空白。系統會用「收入 − 成本」算你的所得。']}},
+  {k:'withheld',l:'已經被扣的稅',s:'憑單上的「扣繳稅額」',ph:'0',
+   help:function(Y){return ['<b>這是什麼</b>發薪水或報酬時,對方已經先幫你繳給國稅局的稅。','<b>為什麼要填</b>最後的「應補繳 / 可退稅」是用「全年稅額 − 已經被扣的稅」算的。不填的話,結果會是全年的總稅額。','<b>在哪看</b>各類所得扣繳憑單的「扣繳稅額」,全部加起來。']}}
+ ]},
+ {title:'其他收入',collapsible:true,sum:'利息、股利、房租、稿費…有才打開',items:[
+  {k:'interest',l:'存款利息',ph:'0',help:function(Y){return ['<b>這是什麼</b>銀行存款、定存的利息,一年加起來。','<b>好處</b>有一筆「儲蓄投資特別扣除額」,最多 '+wn(270000)+',會自動抵掉利息(和股利)。']}},
+  {k:'dividend',l:'股利',s:'公司配的股息、盈餘',ph:'0',help:function(Y){return ['<b>這是什麼</b>持有股票、基金時公司配給你的股利。','<b>系統會幫你</b>自動比較兩種報法,選比較省的:①併入所得、再抵 8.5%(最多 8 萬);②單獨用 28% 計稅。']}},
+  {k:'rentalIncome',l:'房租收入',s:'你把房子租出去收到的',ph:'0',help:function(Y){return ['<b>這是什麼</b>你把自己的房子租給別人收到的租金,全年合計。','<b>系統會幫你</b>沒填實際費用時,自動當成 43% 是必要費用(修繕、稅金等)扣掉。']}},
+  {k:'rentalActual',l:'房租的實際費用',s:'有單據才填',ph:'0',help:function(Y){return ['<b>這是什麼</b>出租房子實際花的修繕、房屋稅、地價稅等,要有憑證。','<b>怎麼填</b>填了,就用「租金 − 實際費用」,不再用 43%。']}},
+  {k:'other',l:'其他所得',s:'稿費、獎金等,已扣成本',ph:'0',help:function(Y){return ['<b>這是什麼</b>不屬於上面任何一種的收入,例如比賽獎金、零星稿費。','<b>怎麼填</b>填「扣掉成本之後」的金額。']}}
+ ]},
+ {title:'第 3 步・可以多扣的項目',footer:'沒有的就跳過。系統會自動幫你檢查有沒有資格。',items:[
+  {k:'kids',t:'cnt',l:'6 歲以下的小孩',help:function(Y){return ['<b>這是什麼</b>還沒滿 6 歲、由你扶養的小孩。','<b>好處</b>第 1 位多扣 '+wn(150000)+',第 2 位起每位多扣 '+wn(225000)+'。']}},
+  {k:'students',t:'cnt',l:'念大專院校的小孩',help:function(Y){return ['<b>這是什麼</b>目前在大專院校(大學、技術學院、五專後兩年等)念書的小孩。','<b>好處</b>每位最多扣 '+wn(25000)+' 學費,實際以繳費單為準。']}},
+  {k:'dis',t:'cnt',l:'有身心障礙證明的人',help:function(Y){return ['<b>這是什麼</b>領有身心障礙證明(手冊)的家人,包括你自己。','<b>好處</b>每位多扣 '+wn(Y.dis)+'。']}},
+  {k:'ltc',t:'cnt',l:'需要長期照顧的人',help:function(Y){return ['<b>這是什麼</b>符合長照需求、有證明的家人。','<b>好處</b>每位多扣 '+wn(180000)+'。','<b>注意</b>如果你扣完之後稅率會到 20% 以上(收入比較高),就不能扣,系統會自動判斷。']}},
+  {k:'noHome',t:'chk',l:'我租房子住,家裡沒有自己的房子',help:function(Y){return ['<b>這是什麼</b>你是租屋自住,而且全家都沒有自己名下的房子。','<b>怎麼選</b>符合就打開,下面會多一欄填租金。']}},
+  {k:'rent',l:'一年付的房租',showIf:'noHome',ph:'0',help:function(Y){return ['<b>這是什麼</b>你租房子一整年付的租金。','<b>好處</b>每一戶最多扣 '+wn(180000)+'。同樣的,扣完稅率到 20% 以上就不能扣。']}}
+ ]},
+ {title:'第 4 步・花費(選填)',footer:'這些花費系統會拿去和「標準扣除額」比,哪個扣得多就用哪個,你不用自己選。',items:[
+  {k:'mortM',l:'每月房貸利息',s:'自己住的房子',ph:'0',help:function(Y){return ['<b>這是什麼</b>買房貸款,每個月繳的「利息」。注意是利息,不是整筆月付金額(銀行的年度繳息證明可以看到)。','<b>限制</b>只限自己住的房子,一年最多扣 '+wn(300000)+'。']}},
+  {k:'medical',l:'一年的醫藥和生育費',s:'自己付、有收據的',ph:'0',help:function(Y){return ['<b>這是什麼</b>你自己付的看病、住院、生產花費,要有收據。健保已經給付的部分不算。']}},
+  {k:'donation',l:'一年捐出去的錢',ph:'0',help:function(Y){return ['<b>這是什麼</b>捐給合法立案的機構或團體,要有收據。','<b>限制</b>最多可以扣到全年收入的 20%。']}},
+  {k:'lifeInsurance',l:'一年的人身保險費',s:'壽險、醫療險等',ph:'0',help:function(Y){return ['<b>這是什麼</b>壽險、醫療險等人身保險的保費。','<b>限制</b>每個人一年最多扣 '+f(24000)+' 元。']}},
+  {k:'healthInsurance',l:'一年的健保費',ph:'0',help:function(Y){return ['<b>這是什麼</b>你自己繳的全民健保費。','<b>好處</b>全額可以扣,沒有上限。']}}
+ ]}
+];
 
-        // 4. 一般扣除額抉擇 (標準 vs 列舉)
-        const standardDeduction = marital === 'married' ? 262000 : 131000;
-        let annualMortgage = monthlyMortgage * 12;
-        if (annualMortgage > 300000) annualMortgage = 300000; // 房貸扣除上限30萬
-        
-        const itemizedDeduction = annualMortgage + otherItemized;
-        
-        let bestDeduction = 0;
-        let deductionLabel = "";
-        
-        if (itemizedDeduction > standardDeduction) {
-            bestDeduction = itemizedDeduction;
-            deductionLabel = "③ 扣除一般扣除額 (採有利：列舉扣除)";
-        } else {
-            bestDeduction = standardDeduction;
-            deductionLabel = "③ 扣除一般扣除額 (採有利：標準扣除)";
-        }
+var state={year:'115',married:'0'};var calculated=false;
+var $=function(i){return document.getElementById(i)};
+function allItems(){var a=[];GROUPS.forEach(function(g){g.items.forEach(function(it){a.push(it)})});return a}
 
-        // 5. 計算淨額
-        let taxableIncome = net9AIncome - exemption - bestDeduction - totalSpecial;
-        if (taxableIncome < 0) taxableIncome = 0;
+function rowHtml(it){
+  var lab='<div class="row-label"><div><span class="t">'+it.l+'</span>'+(it.s?'<span class="s">'+it.s+'</span>':'')+'<span class="s" id="w_'+it.k+'"></span></div>'
+    +'<button type="button" class="q" data-q="'+it.k+'" aria-expanded="false" aria-controls="h_'+it.k+'" aria-label="'+it.l+' 的說明">?</button></div>';
+  var c;
+  if(it.t==='seg')c='<div class="seg" role="group" aria-label="'+it.l+'">'+it.opts.map(function(o){return '<button type="button" data-seg="'+it.k+'" data-v="'+o[0]+'" aria-pressed="false">'+o[1]+'</button>'}).join('')+'</div>';
+  else if(it.t==='cnt')c='<div class="stepper"><button type="button" data-dec="'+it.k+'" aria-label="減少">−</button><output id="o_'+it.k+'">0</output><button type="button" data-inc="'+it.k+'" aria-label="增加">＋</button></div>';
+  else if(it.t==='chk')c='<input type="checkbox" class="sw" id="i_'+it.k+'" data-k="'+it.k+'" aria-label="'+it.l+'">';
+  else c='<div class="money"><input type="number" inputmode="numeric" min="0" step="1" id="i_'+it.k+'" data-k="'+it.k+'" placeholder="0" aria-label="'+it.l+'"><i>元</i></div>';
+  return '<div class="row" data-row="'+it.k+'"><div class="row-main">'+lab+'<div class="ctl">'+c+'</div></div><div class="help" id="h_'+it.k+'" hidden></div></div>';
+}
+function build(){
+  var h='';
+  GROUPS.forEach(function(g){
+    var list='<div class="list">'+g.items.map(rowHtml).join('')+'</div>';
+    if(g.collapsible)h+='<details class="more" id="moreIncome"><summary><span>'+g.title+'<span class="sumsub">'+g.sum+'</span></span></summary>'+list+'</details>';
+    else h+='<section class="group"><h2 class="group-title">'+g.title+'</h2>'+list+(g.footer?'<p class="footer">'+g.footer+'</p>':'')+'</section>';
+  });
+  $('form').innerHTML=h;
+}
+function helpHtml(it){var Y=P(state.year);return it.help(Y).map(function(p){return '<p>'+p+'</p>'}).join('')}
+function sync(){
+  allItems().forEach(function(it){
+    var row=document.querySelector('[data-row="'+it.k+'"]');
+    if(it.showIf)row.hidden=!(+state[it.showIf]||state[it.showIf]===true);
+    if(it.t==='seg')row.querySelectorAll('[data-seg]').forEach(function(b){b.setAttribute('aria-pressed',String(state[it.k])===b.dataset.v?'true':'false')});
+    else if(it.t==='cnt')$('o_'+it.k).textContent=state[it.k]||0;
+    else if(it.t==='chk')$('i_'+it.k).checked=!!state[it.k];
+    else{var w=$('w_'+it.k);if(w)w.textContent=it.k==='mortM'&&state.mortM>0?'全年約 '+f(state.mortM*12)+' 元':wanTxt(state[it.k]||0)}
+    var hp=$('h_'+it.k);if(hp&&!hp.hidden)hp.innerHTML=helpHtml(it);
+  });
+  if(['interest','dividend','rentalIncome','rentalActual','other'].some(function(k){return state[k]>0}))$('moreIncome').open=true;
+  $('calc').textContent=calculated?'重新計算':'計算我的稅';
+}
+function inputs(){return {married:String(state.married)==='1',selfOld:state.selfOld,spouseOld:state.spouseOld,depU:state.depU,dep70:state.dep70,
+  salarySelf:state.salarySelf,salarySpouse:state.salarySpouse,practiceGross:state.practiceGross,practiceCost:state.practiceCost,withheld:state.withheld,
+  interest:state.interest,dividend:state.dividend,rentalIncome:state.rentalIncome,rentalActual:state.rentalActual,other:state.other,
+  kids:state.kids,students:state.students,dis:state.dis,ltc:state.ltc,noHome:state.noHome,rent:state.rent,
+  mortM:state.mortM,medical:state.medical,donation:state.donation,lifeInsurance:state.lifeInsurance,healthInsurance:state.healthInsurance}}
 
-        // 6. 級距判斷與稅金計算
-        let tax = 0;
-        let rateDisplay = "0%";
-        
-        if (taxableIncome === 0) {
-            tax = 0;
-            rateDisplay = "免繳稅";
-        } else if (taxableIncome <= 590000) {
-            tax = taxableIncome * 0.05;
-            rateDisplay = "5%";
-        } else if (taxableIncome <= 1330000) {
-            tax = (taxableIncome * 0.12) - 41300;
-            rateDisplay = "12%";
-        } else if (taxableIncome <= 2660000) {
-            tax = (taxableIncome * 0.20) - 147700;
-            rateDisplay = "20%";
-        } else if (taxableIncome <= 4980000) {
-            tax = (taxableIncome * 0.30) - 413700;
-            rateDisplay = "30%";
-        } else {
-            tax = (taxableIncome * 0.40) - 911700;
-            rateDisplay = "40%";
-        }
-        if (tax < 0) tax = 0;
+function renderResult(){
+  var o=compute(inputs(),state.year),r=o.r,Y=o.Y,all=o.all,pay=r.payable,refund=pay<0;
+  var lo=r.bi?Y.br[r.bi-1].up:0,up=Y.br[r.bi].up;
+  var h='<div class="hero"><div class="k">'+(refund?'預估可退稅':'預估應補繳')+(r.withheld>0?'(已扣掉先前被扣的稅 '+f(r.withheld)+' 元)':'')+'</div>'
+   +'<div class="n '+(refund?'refund':'pay')+'">'+f(Math.abs(pay))+'<small>元</small></div>'
+   +'<div class="why">全年稅額 '+f(r.total)+' 元 ・ '+PARAMS[state.year].name+'</div></div>';
 
-        // 7. 渲染 UI
-        document.getElementById('res-net-income').innerText = formatCurrency(net9AIncome);
-        document.getElementById('label-exemption').innerText = `② 扣除免稅額 (共 ${totalPeopleNormal + depElderly} 人)`;
-        document.getElementById('res-exemption').innerText = "- " + formatCurrency(exemption);
-        
-        document.getElementById('label-deduction').innerText = deductionLabel;
-        document.getElementById('res-deduction').innerText = "- " + formatCurrency(bestDeduction);
-        
-        document.getElementById('res-special').innerText = "- " + formatCurrency(totalSpecial);
-        
-        document.getElementById('res-taxable').innerText = formatCurrency(taxableIncome);
-        
-        document.getElementById('res-rate-badge').innerText = rateDisplay;
-        document.getElementById('res-final-tax').innerText = formatCurrency(tax);
+  // 級距
+  var ladder='<div class="ladder">'+Y.br.map(function(b,i){var l=i?Y.br[i-1].up:0;
+    var rng=i===0?'0–'+Math.round(b.up/10000)+'萬':(isFinite(b.up)?Math.round(l/10000)+'–'+Math.round(b.up/10000)+'萬':Math.round(l/10000)+'萬以上');
+    return '<div'+(i===r.bi&&r.net>0?' class="on"':'')+'><b>'+pc(b.r)+'</b>'+rng+'</div>'}).join('')+'</div>';
+  var mine,mini;
+  if(r.net===0){mine='你的綜合所得淨額是 <b>0 元</b>,<b>不用繳稅</b>(還沒進入第 1 級)。';mini='扣掉免稅額和扣除額之後沒有剩下的所得。'}
+  else{
+    mine='你目前落在 <b>第 '+(r.bi+1)+' 級,稅率 '+pc(r.rate)+'</b>(淨所得 '+(r.bi?f(lo+1):'0')+(isFinite(up)?' ～ '+f(up):' 以上')+' 元)。';
+    mini='稅額 = 淨所得 '+f(r.net)+' × '+pc(r.rate)+(r.diff?' − 累進差額 '+f(r.diff):'')+' = '+f(r.progressive)+' 元。'
+      +(r.headroom===null?' 已經是最高級距。':' 淨所得再多 '+f(r.headroom)+' 元,就會進入下一級('+pc(r.nextRate)+')。');
+  }
+  h+='<div class="card"><h3>你的稅率級距</h3><p class="cap">稅率是「分級」計算的,超過的那一段才用比較高的稅率。</p>'+ladder
+    +'<div class="mine">'+mine+'</div><div class="mini">'+mini+'</div></div>';
 
-        document.getElementById('result-box').style.display = 'block';
-    }
+  // 算式
+  var L=function(a,b,c){return '<div class="line'+(c?' sum':'')+'"><span>'+a+'</span><span>'+b+'</span></div>'};
+  h+='<div class="card"><h3>怎麼算出來的</h3><p class="cap">由上往下,一步一步扣。</p>'
+   +L('① 全年所得總額',f(r.incomeTotal))
+   +L('② 免稅額(共 '+r.members+' 人)','− '+f(r.exemption))
+   +L('③ '+(r.mode==='item'?'列舉扣除額':'標準扣除額')+'<span class="chip">自動選較省</span>','− '+f(r.deduction))
+   +L('④ 特別扣除額'+(r.blocked?'<span class="chip">長照/租金因稅率達 20% 不可扣</span>':''),'− '+f(r.spTotal))
+   +(r.blDiff>0?L('⑤ 基本生活費差額','− '+f(r.blDiff)):'')
+   +L('＝ 綜合所得淨額',f(r.net),1)
+   +L('累進稅額('+pc(r.rate)+')',f(r.progressive))
+   +(r.credit>0?L('股利可抵減稅額','− '+f(r.credit)):'')+(r.sepTax>0?L('股利分開計稅(28%)','+ '+f(r.sepTax)):'')
+   +L('全年應納稅額',f(r.total),1)+L('已經被扣的稅','− '+f(r.withheld))
+   +L(refund?'可退稅':'應補繳',f(Math.abs(pay)),1)+'</div>';
+
+  // 建議
+  var tips=[],std=all['std-'+r.div],it=all['item-'+r.div],d=Math.abs(std.total-it.total);
+  tips.push(r.mode==='item'?'你的花費比標準扣除額多,系統已幫你用「列舉」,比標準少繳 '+f(d)+' 元。':'標準扣除額比你的花費多,已幫你用「標準」'+(d>0?',用列舉會多繳 '+f(d)+' 元。':'。'));
+  if(state.dividend>0){var oth=all[r.mode+'-'+(r.div==='combined'?'separate':'combined')];tips.push('股利採「'+(r.div==='combined'?'併入所得':'單獨 28%')+'」,比另一種少繳 '+f(Math.abs(oth.total-r.total))+' 元。')}
+  if(r.blDiff>0)tips.push('你的家人多,基本生活費差額幫你多扣了 '+f(r.blDiff)+' 元所得。');
+  if(PARAMS[state.year].blProvisional&&r.blDiff>0)tips.push('提醒:115 年度每人基本生活費財政部還沒公告,先用 114 年度的 21.3 萬計算,公告後可能微調。');
+  h+='<div class="card"><h3>重點整理</h3><ul class="tips" style="margin-top:10px">'+tips.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>';
+
+  // 級距表
+  var tb='<tr><th>綜合所得淨額</th><th>稅率</th><th>累進差額</th></tr>'+Y.br.map(function(b,i){var l=i?Y.br[i-1].up:0;
+    var rng=i===0?'0 ～ '+f(b.up):(isFinite(b.up)?f(l+1)+' ～ '+f(b.up):f(l+1)+' 以上');
+    return '<tr'+(i===r.bi&&r.net>0?' class="hit"':'')+'><td>'+rng+'</td><td>'+pc(b.r)+'</td><td>'+f(bDiff(i,Y))+'</td></tr>'}).join('');
+  h+='<div class="card"><h3>'+PARAMS[state.year].name+' 課稅級距表</h3><p class="cap">反白那一列就是你。</p><div class="tw"><table>'+tb+'</table></div></div>';
+
+  // 方案比較
+  var nm={std:'標準',item:'列舉',combined:'合併',separate:'分開'};
+  var cmp='<tr><th>方案</th><th>淨所得</th><th>稅額</th></tr>'+Object.keys(all).map(function(k){var s=all[k],p=k.split('-');
+    return '<tr'+(k===o.best?' class="best"':'')+'><td>'+nm[p[0]]+' / '+nm[p[1]]+(k===o.best?'(最省)':'')+'</td><td>'+f(s.net)+'</td><td>'+f(s.total)+'</td></tr>'}).join('');
+  h+='<details class="more" style="margin-top:14px"><summary><span>看四種方案的比較<span class="sumsub">標準 / 列舉、股利併入 / 分開</span></span></summary><div class="list" style="padding:8px 16px"><div class="tw"><table>'+cmp+'</table></div></div></details>';
+  $('out').innerHTML=h;
+}
+function calc(){
+  var empty=!['salarySelf','salarySpouse','practiceGross','interest','dividend','rentalIncome','other'].some(function(k){return state[k]>0});
+  if(empty){
+    $('result').hidden=false;$('stale').hidden=true;$('out').classList.remove('dim');
+    $('out').innerHTML='<div class="hero"><div class="k">還沒有填收入</div><div class="why" style="margin-top:8px">請先在「第 2 步・你的收入」填入薪水或其他收入,再按一次「計算我的稅」。</div></div>';
+  }else{renderResult();$('result').hidden=false;$('stale').hidden=true;$('out').classList.remove('dim')}
+  calculated=true;sync();
+  var el=$('result');if(el.scrollIntoView){try{el.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){el.scrollIntoView()}}
+}
+function touched(){if(calculated){$('stale').hidden=false;$('out').classList.add('dim')}}
+
+build();sync();
+
+document.addEventListener('input',function(e){
+  var k=e.target.dataset&&e.target.dataset.k;if(!k)return;
+  state[k]=e.target.type==='checkbox'?e.target.checked:(parseFloat(e.target.value)||0);touched();sync();
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.q){var it=allItems().filter(function(x){return x.k===b.dataset.q})[0],hp=$('h_'+it.k),open=hp.hidden;
+    hp.hidden=!open;b.setAttribute('aria-expanded',String(open));if(open)hp.innerHTML=helpHtml(it);return}
+  if(b.dataset.seg){state[b.dataset.seg]=b.dataset.v;if(b.dataset.seg==='year'&&calculated)touched();else touched();sync();return}
+  var k=b.dataset.inc||b.dataset.dec;
+  if(k){state[k]=Math.max(0,Math.min(20,(state[k]||0)+(b.dataset.inc?1:-1)));touched();sync()}
+});
+$('calc').onclick=calc;
+$('clearAll').onclick=function(){var y=state.year;state={year:y,married:'0'};
+  allItems().forEach(function(it){if(!it.t||it.t==='money'){var i=$('i_'+it.k);if(i)i.value=''}});
+  calculated=false;$('result').hidden=true;sync()};
+$('fillExample').onclick=function(){
+  state={year:state.year,married:'1',depU:1,salarySelf:900000,salarySpouse:500000,withheld:60000,kids:1,mortM:12000,medical:20000,donation:10000,lifeInsurance:30000,healthInsurance:28000};
+  allItems().forEach(function(it){if(!it.t){var i=$('i_'+it.k);if(i)i.value=state[it.k]||''}});
+  sync();touched();
+};
 </script>
-
 </body>
 </html>
