@@ -32,7 +32,11 @@
     var rentNet = inp.rentalActual > 0 ? Math.max(0, n(inp.rentalIncome) - n(inp.rentalActual))
                                       : n(inp.rentalIncome) * (1 - P.rentalExpenseRate);
     var divIn = div === 'combined' ? dividend : 0;
-    var gross = salary + interest + divIn + rentNet + n(inp.practice) + n(inp.other);
+    // 執行業務(9A):預設扣20%成本費用,可關閉(practiceCost === false)則全額計入
+    var costRate = inp.practiceCost === false ? 0 : P.practiceCostRate;
+    var practiceNet = n(inp.practice) + n(inp.practiceGross) * (1 - costRate);
+    var gross = salary + interest + divIn + rentNet + practiceNet + n(inp.other);
+    var mortgageYear = n(inp.mortgage) + n(inp.mortgageM) * 12;
 
     // 扣除額
     var deduction, detail = {};
@@ -44,7 +48,7 @@
       detail.medical = n(inp.medical);
       detail.disaster = n(inp.disaster);
       // 實付利息先減除儲蓄投資特別扣除額,餘額才可列舉,上限30萬
-      detail.mortgage = Math.min(P.mortgageLimit, Math.max(0, n(inp.mortgage) - Math.min(P.savingsDeduction, interest + divIn)));
+      detail.mortgage = Math.min(P.mortgageLimit, Math.max(0, mortgageYear - Math.min(P.savingsDeduction, interest + divIn)));
       deduction = detail.donation + detail.insurance + detail.medical + detail.disaster + detail.mortgage;
     }
 
@@ -54,7 +58,9 @@
                 (married ? Math.min(n(inp.salarySpouse), P.salaryDeduction) : 0);
     sp.savings = Math.min(P.savingsDeduction, interest + divIn);
     sp.disability = n(inp.disabled) * P.disabilityDeduction;
-    sp.tuition = Math.min(n(inp.tuition), n(inp.students) * P.tuitionPerStudent);
+    // 未填學費時,以每位大專子女的扣除上限計算
+    sp.tuition = inp.tuition === undefined ? n(inp.students) * P.tuitionPerStudent
+                                           : Math.min(n(inp.tuition), n(inp.students) * P.tuitionPerStudent);
     sp.rent = inp.noHome ? Math.min(n(inp.rent), P.rentLimit) : 0;
     sp.longTerm = n(inp.longTerm) * P.longTermCarePerPerson;
     // 幼兒學前:第1名15萬,第2名起每人22.5萬,無稅率限制

@@ -26,6 +26,7 @@ var TAX_PARAMS = {
   mortgageLimit: 300000,
   lifeInsurancePerPerson: 24000,
   donationRatio: 0.20,        // 捐贈上限:綜合所得總額20%
+  practiceCostRate: 0.20,     // 執行業務(9A)成本費用率,可在介面關閉
   rentalExpenseRate: 0.43,    // 租賃必要費用(未核實時)
   dividendCreditRate: 0.085,
   dividendCreditCap: 80000,
